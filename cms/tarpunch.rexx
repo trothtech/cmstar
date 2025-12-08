@@ -23,7 +23,7 @@ If host = "" Then host = hostid
 /* careful! this is a raw SIFT/UFT job */
 Address "COMMAND" 'STATE UFTCHOST REXX *'
 If rc = 0 Then Do
-  'ADDPIPE *.OUTPUT: | UFTCHOST' host '(TYPE I | *.OUTPUT:'
+  'ADDPIPE *.OUTPUT: | UFTCHOST' host '| *.OUTPUT:'
   If rc /= 0 Then Exit rc
   'CALLPIPE VAR USERID | XLATE LOWER | VAR USERID'
   'OUTPUT FILE 0' userid '-'
