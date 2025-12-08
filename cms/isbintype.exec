@@ -1,0 +1,47 @@
+/*
+ *
+ *        Name: ISBINTYPE EXEC
+ *              returns true (1) if the supplied filetype is binary
+ *      Author: Rick Troth, Cedarville, Ohio, USA
+ *        Date: 2025-12-07 (Sun)
+ *
+ *        NOTE: returns "?" if it cannot determine explicitly
+ *
+ */
+
+/* first be sure that we are invoked as a Rexx function               */
+Parse Upper Source . mode arg0 .
+If mode ^= "FUNCTION" Then Do
+    Address "COMMAND" 'XMITMSG 475 ARG0 (ERRMSG'
+    Address "COMMAND" 'XMITMSG 1304 ARG0 (ERRMSG'
+    Exit 24
+End
+
+/* second check if this filetype is listed explicitly text/binary     */
+Parse Upper Arg ft . , .
+Parse Upper Value Value(ft,,"SESSION FILETYPE") With tr nl .
+If tr = "YES" Then Return 0
+If tr = "NO" Then Return 1
+
+/* in the end look for this filetype VM TCP/IP configuration file     */
+Address "COMMAND" 'PIPE < TCPIP DATA' ,
+    '| XLATE UPPER | STRLOCATE 1.11 /VMFILETYPE / | STEM VMFT.'
+If rc ^= 0 Then Return "?"
+Do i = 1 to vmft.0
+    Parse Var vmft.i . ft "," .    ; ft = Strip(ft)
+    If Value(ft,,"SESSION FILETYPE") ^= "" Then Iterate
+    Parse Var vmft.i . "TRANSLATE=" tr "," .
+    Parse Var vmft.i . "LINES=" nl "," .
+    Call Value ft, tr nl, "SESSION FILETYPE"
+End /* Do For */
+
+/* perform a second check on this particular filetype                 */
+Parse Upper Arg ft . , .
+Parse Upper Value Value(ft,,"SESSION FILETYPE") With tr nl .
+If tr = "YES" Then Return 0
+If tr = "NO" Then Return 1
+
+Return "?"
+
+
+
