@@ -12,6 +12,8 @@ Numeric Digits 16
 a_nprint = '00010203040506'x
 /* EBCDIC non-printables */
 e_nprint = '0001020304'x
+/* generic non-printables */
+e_nprint = '0001020304060B0C0E0F10111213141718191A1B1C1D1E1F'x
 
 /* some defaults */
 tar.uid = 1
@@ -42,11 +44,15 @@ Parse Var args arg1 .
 Do While Left(arg1,2) = "--"
   Parse Var args . args
   Select
-    When Abbrev("--version",arg1,5) Then Do
+    When Abbrev("--version",arg1,6) Then Do
 /*      Say "CMS TAR - Version" vrm "(piped)"    */
 /*      Say "tar (CMS tar)" vrm    */
         Say "CMS TAR" vrm "(piped)"
         Exit
+    End /* When .. Do */
+    When Abbrev("--help",arg1,4) Then Do
+        Address "COMMAND" 'HELP TAR'
+        Exit rc
     End /* When .. Do */
     When Abbrev("--append",arg1,5)  Then append = 1
     Otherwise Do
