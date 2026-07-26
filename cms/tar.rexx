@@ -5,15 +5,17 @@
  *      Author: Rick Troth, Houston, Texas, USA
  */
 
-vrm = "2.5.0"
+vrm = "2.5.1"
 Numeric Digits 16
 
 /* ASCII non-printables */
 a_nprint = '00010203040506'x
+a_nprint = '01020304060B0E0F10111213141718191A1C1D1E1F'x
 /* EBCDIC non-printables */
 e_nprint = '0001020304'x
-/* generic non-printables */
 e_nprint = '0001020304060B0C0E0F10111213141718191A1B1C1D1E1F'x
+/* generic non-printables */
+x_nprint = '01020304060B0E0F10111213141718191A1C1D1E1F'x
 
 /* some defaults */
 tar.uid = 1
@@ -25,6 +27,7 @@ argo = arg0 || ':'
 tc = ""     /* primary operation (tar command) */
 tf = ""     /* archive file (tar file) */
 td = ""     /* archive device (disk, tape, or spool) */
+tn = ""     /* name applied to TAR-as-stream */
 
 verbose = 0
 modtime = 1
@@ -44,21 +47,16 @@ Parse Var args arg1 .
 Do While Left(arg1,2) = "--"
   Parse Var args . args
   Select
-    When Abbrev("--version",arg1,6) Then Do
-/*      Say "CMS TAR - Version" vrm "(piped)"    */
-/*      Say "tar (CMS tar)" vrm    */
+    When Abbrev("--version",arg1,5) Then Do
         Say "CMS TAR" vrm "(piped)"
-        Exit
-    End /* When .. Do */
+        Exit 0 ; End
     When Abbrev("--help",arg1,4) Then Do
-        Address "COMMAND" 'HELP TAR'
-        Exit rc
-    End /* When .. Do */
+        Address "COMMAND" 'HELP CMS TAR'
+        Exit rc ; End
     When Abbrev("--append",arg1,5)  Then append = 1
     Otherwise Do
       Address "COMMAND" 'XMITMSG 3 ARG1 (ERRMSG'
-      Exit 24
-    End /* Otherwise Do */
+      Exit 24 ; End
   End /* Select */
   Parse Var args arg1 .
 End /* Do While */
@@ -74,59 +72,58 @@ Do While cmd ^= ""
             If tc ^= "" Then Do
                 Address "COMMAND" 'XMITMSG 66 TC C (ERRMSG'
                 Say argo "multiple primary operations."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             tc = c
         End /* When Do */
         When c = 'X' Then Do
             If tc ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TC C (ERRMSG'
                 Say argo "multiple primary operations."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             tc = c
         End /* When Do */
         When c = 'T' Then Do
             If tc ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TC C (ERRMSG'
                 Say argo "multiple primary operations."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             tc = c
         End /* When Do */
         When c = 'R' Then Do
             If tc ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TC C (ERRMSG'
                 Say argo "multiple primary operations."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             tc = c
         End /* When Do */
         When c = 'F' Then Do
             If tf ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TF C (ERRMSG'
                 Say argo "multiple archives specified."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             Parse Var args tf args
             td = 'F'
         End /* When Do */
         When c = 'S' Then Do
             If tf ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TF C (ERRMSG'
                 Say argo "multiple archives specified."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             Parse Var args tf args
             td = 'S'
         End /* When Do */
         When c = '0' | c = '1' | c = '2' | c = '3' ,
              c = '4' | c = '5' | c = '6' | c = '7' Then Do
             If tf ^= "" Then Do
+                Address "COMMAND" 'XMITMSG 66 TF C (ERRMSG'
                 Say argo "multiple archives specified."
-                Exit 24
-            End /* If .. Do */
+                Exit 24 ; End
             tf = "TAP" || c
             td = 'T'
         End /* When Do */
         When c = 'V' Then Do
           verbose = 1
-          Say "CMS TAR - Version" vrm "(piped)"
+          Say "CMS TAR" vrm "(piped)"
         End /* When Do */
         When c = 'M' Then modtime = 0
         When c = 'W' Then prompt = 1
@@ -150,11 +147,13 @@ End
 If POS("://",tf) > 0 Then td = 'S'
 
 Do While opts ^= ""
-  Parse Var opts op opts
-  Upper op
+  Parse Var opts op opts ; Upper op
   Select /* op */
     When Abbrev("VERSION",op,3)     Then Do
-        Say "CMS TAR" vrm "(piped)" ; Exit ; End
+        Say "CMS TAR" vrm "(piped)" ; Exit 0 ; End
+    When Abbrev("HELP",op,2)        Then Do
+        Address "COMMAND" 'HELP CMS TAR' ; Exit rc ; End
+    When Abbrev("APPEND",op,3)      Then append = 1
     When Abbrev("TARLIST",op,4)     Then tarlist = 1
     When Abbrev("NOTARLIST",op,3)   Then tarlist = 0
     When Abbrev("INCLUDE",op,3)     Then Parse Var opts include opts
@@ -170,6 +169,7 @@ Do While opts ^= ""
     When Abbrev("REPLACE",op,3)     Then replace = 1
     When Abbrev("NOREPLACE",op,3)   Then replace = 0
     When Abbrev("APPEND",op,3)      Then append = 1
+    When Abbrev("NAMEIT",op,3)      Then Parse Var opts tn opts
     Otherwise Do
       Address "COMMAND" 'XMITMSG 3 OP (ERRMSG'
       Exit 24
@@ -196,7 +196,7 @@ Select /* tc */
                 Call CREATE
                 End /* When .. Do */
             When td = 'S' Then Do
-                'ADDPIPE *.OUTPUT: | TARPUNCH' tf
+                'ADDPIPE *.OUTPUT: | TARPUNCH' tf tn
                 Call CREATE
                 End /* When .. Do */
             Otherwise Do
@@ -260,7 +260,6 @@ Select /* tc */
     End  /*  Select  tc  */
 
 Exit rc * (rc ^= 12)
-
 
 /* ---------------------------------------------------------------------
  *  create or update
@@ -536,7 +535,6 @@ Do While o ^= ""
     End  /*  Do  While  */
 Return d
 
-
 /* ------------------------------------------------------------------ */
 D2O:      Procedure     /* Decimal to Octal conversion */
 Parse Arg d
@@ -550,7 +548,6 @@ Do While d ^= 0
     d = d % 8
     End  /*  Do While  */
 Return o
-
 
 /* ------------------------------------------------------------- TARDATE
  *  Convert local CMS time and date stamp to POSIX time value.
@@ -569,7 +566,6 @@ If rc /= 0 Then Return 0
 
 /* return POSIX time value */
 Return C2D(pdate) /* - tzoffset("S") */
-
 
 /* ------------------------------------------------------------- SYSDATE
  *  Convert POSIX time in archive to local CMS time and date stamp.
@@ -593,7 +589,6 @@ End
 Parse Var rs rd rt .
 Parse Var rt rt "." .
 Return rd rt
-
 
 /* ------------------------------------------------------------ MKTARENT
  *  Create a TAR entry (directory info) from values.
@@ -674,11 +669,6 @@ struct posix_header
 
  */
 
-
-
-
-
-
 /* ------------------------------------------------------------ TZOFFSET
  *  Compute timezone offset based on timezone string from 'CP Q TIME'.
  *  (we probably have a CSL routine to do this ... but maybe not)
@@ -718,7 +708,6 @@ Select /* denom */
   When denom = "M" Then Return zo * 60           /* offset in minutes */
   Otherwise Return zo
 End /* Select denom */
-
 
 /* ---------------------------------------------------------------------
  */

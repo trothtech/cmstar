@@ -7,12 +7,12 @@
 #               re-download it from the primary web site (BASEURL).
 #
 #
-#
 
 MANIFEST        =       \
                         cmstar.filelist   \
                         cmstar.readme     \
                         cmstar.license    \
+                        \
                         tar.exec          \
                         tar.rexx          \
                         tar.helpcms       \
@@ -37,7 +37,7 @@ MANIFEST        =       \
 
 BASEURL         =       http://www.casita.net/pub/cmstar
 
-_default:  $(MANIFEST)
+_default:       $(MANIFEST)
 
 # create a Unix makefile (tabs) from the CMS TAR makefile
 makefile:  cmstar.cmsmake
@@ -136,7 +136,7 @@ rxvmgroup.module:  rxvmgroup.assemble
 
 archives:       cmstar.vmarc cmstar.tar
 
-cmstar.vmarc:  $(MANIFEST)
+cmstar.vmarc:   $(MANIFEST)
         @rm -f cmstar.vmarc
         @cms ' pipe < cmstar filelist \
                 | strip | nlocate 1.1 /*/ \
@@ -148,9 +148,12 @@ cmstar.vmarc:  $(MANIFEST)
 cmstar.vmarcuue:  cmstar.vmarc
         uuencode -m $< < $< > $@
 
-cmstar.tar:
+cmstar.tar:     $(MANIFEST)
         @rm -f cmstar.tar
         tar cvf cmstar (include cmstar
+
+cmstar.now:     $(MANIFEST)
+        tar cvs rmt@bit.casita.net (include cmstar name cmstar.tar
 
 cmstar.taruue:  cmstar.tar
         uuencode -m $< < $< > $@

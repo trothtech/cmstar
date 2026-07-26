@@ -18,6 +18,7 @@ End
 /* second check if this filetype is listed explicitly text/binary     */
 Parse Upper Arg data , .
 x_nprint = '010203040607080B0C0E0F1011121314161718191A1B1C1D1E1F'x
+x_nprint = '01020304060B0E0F10111213141718191A1C1D1E1F'x
 Do While data ^= ""
     Parse Var Data +0 d +1 data
     If POS(d,x_nprint) > 0 Then Return 1
