@@ -5,7 +5,7 @@
  *      Author: Rick Troth, Houston, Texas, USA
  */
 
-vrm = "2.5.1"
+vrm = "2.5.2"
 Numeric Digits 16
 
 /* ASCII non-printables */
@@ -291,7 +291,7 @@ Do Forever
 
     'CALLPIPE COMMAND LISTFILE' fn ft fm ,
         '(FULLDATE | DROP | VAR FILESPEC'
-    If rc /= 0 Then Iterate
+    If rc ^= 0 Then Iterate
 
     Parse Var filespec . . fmode recfm lrecl . . date time .
     fmode = Right(fmode,1)
@@ -308,18 +308,27 @@ Do Forever
 
     If recfm = 'V' Then lrecl = 0
 
-    'CALLPIPE <' fn ft fm '| TAKE FIRST 1 | VAR SAMPLE'
-    If Verify(sample,e_nprint,'M') = 0 Then trans = 't'
-                                       Else trans = 'b'
+    /* set trans flag based on binary (filetype or content)           */
+    isbin = isbintype(ft)                              /* added 2.5.2 */
+    Select /* isbin */                                 /* added 2.5.2 */
+        When isbin = 0 Then trans = 't'
+        When isbin = 1 Then trans = 'b'
+        Otherwise Do
+            'CALLPIPE <' fn ft fm '| TAKE FIRST 1 | VAR SAMPLE'
+            If Verify(sample,e_nprint,'M') = 0 Then trans = 't'
+                                               Else trans = 'b'
+        End /* Otherwise Do */
+    End /* Select isbin */                             /* added 2.5.2 */
 
-    Select
-        When trans = 't' Then
+    /* pick a pipe based on trans flag (set in previous stanza)       */
+    Select /* trans */
+        When trans = 't' Then ,
             pipe = '| STRIP TRAILING | E2A | SPEC 1-* 1 .0A. X2C NEXT'
-        When lrecl = 0 Then
+        When lrecl = 0 Then ,
             pipe = '| BLOCK 512 CMS'
-        Otherwise
+        Otherwise ,
             pipe = ""
-        End  /*  Select  */
+    End /* Select trans */
 
     'CALLPIPE <' fn ft fm pipe '| COUNT BYTES | VAR SIZE'
 
@@ -463,7 +472,7 @@ LISTOC:
 If rc = 4 Then rc = 0
 If rc = 8 Then rc = 0
 If rc = 12 Then 'ADDPIPE *.OUTPUT: | CONSOLE'
-If rc /= 0 Then Exit rc
+If rc ^= 0 Then Exit rc
 
 Do Forever
 
@@ -562,7 +571,7 @@ If POS("-",date) > 0 Then idfmt = "ISODATE"
 /* convert to POSIX for easier arithmetic */
 idate = date time
 'CALLPIPE VAR IDATE | DATECONVERT' idfmt 'POSIX | VAR PDATE'
-If rc /= 0 Then Return 0
+If rc ^= 0 Then Return 0
 
 /* return POSIX time value */
 Return C2D(pdate) /* - tzoffset("S") */
@@ -580,8 +589,8 @@ zdate = D2C(base,8)
 
 /* convert back to FULLDATE and include time */
 'CALLPIPE VAR ZDATE | DATECONVERT POSIX FULLDATE TIMEOUT | VAR RS'
-If rc /= 0 Then Do
-  If rs /= "" & rs /= "RS" Then Say rs
+If rc ^= 0 Then Do
+  If rs ^= "" & rs ^= "RS" Then Say rs
   Return Date("S") Time()
 End
 

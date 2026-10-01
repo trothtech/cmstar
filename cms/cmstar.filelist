@@ -3,6 +3,7 @@
 *         Name: CMSTAR FILELIST
 *         Date: 2016-Apr-21 (Thu), 2025-12-07 (Sun)
 *               This is the package definition for "CMS TAR".
+*      Version: 2.5.2
 *
       CMSTAR   FILELIST *  -- this file
       CMSTAR   README   *  -- do what the name says
@@ -18,6 +19,7 @@
 *     TARTAPER REXX     *  --
 *     TARTAPEW REXX     *  --
       TARTAKE  REXX     *  --
+*
       CURL     REXX     *  -- web retrieval helper stage (part of CMS Make)
       CURL     EXEC     *  --
       CURL     HELPCMS  *  --
@@ -38,8 +40,9 @@
       CMSTAR   CMSMAKE  *  -- simple 'make' rules for [re]packaging these files
 * make -f cmstar archives
 *
-      ISBINTYPE EXEC    *  -- function to indicate binary filetype
+      ISBINTYPE EXEC    *  -- function to indicate binary/non-print filetype
       ISBINDATA EXEC    *  -- function to indicate binary/non-print data
+*
 *     RXVMGROUP MODULE  *  -- a vmgroup() function for REXX
       RXVMGROUP ASSEMBLE * -- source to the vmgroup() function
       VMGROUP  HELPREXX *  -- help file for the vmgroup() function
