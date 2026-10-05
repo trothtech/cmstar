@@ -18,9 +18,10 @@ A leading dash is not required and is ignored if present.
 
 The "c" command invokes a create operation.
 
-    tar cf adisk * * b
+    tar cf bdisk * * b
 
-This will create ADISK TAR containing all files found on your "B" disk.
+This will create `BDISK TAR` on filemode "A"
+containing all files found on your "B" disk.
 
 * extract
 
@@ -28,8 +29,8 @@ The "x" command invokes an extract operation.
 
     tar xf imported
 
-This will extract the files from IMPORTED TAR (on any filemode).
-The files will be placed on filemode "A".
+This will extract the files from `IMPORTED TAR` (on any filemode).
+The files will be placed at filemode "A".
 
 * list (table of contents)
 
@@ -37,12 +38,12 @@ The "t" command invokes a list operation (of the "table of contents").
 
     tar tf arcfile
 
-This will list the files in ARCFILE TAR.
-ARCFILE TAR is presumably RECFM=F and LRECL=512, but `tar` does not
+This will list the files in `ARCFILE TAR`.
+`ARCFILE TAR` is presumably RECFM=F and LRECL=512, but `tar` does not
 restrict files which it reads to any particular format, only that they
 are binary.
 
-* file
+* "f" for file
 
 An "f" in the command means that a filename follows.
 This is illustrated in the examples above.
@@ -51,12 +52,12 @@ CMS TAR uses a single blank-delimited token for the archive filename.
 The filetype is `tar`. If the name is a single numeric digit then it
 indicates a tape device.
 
-* verbose
+* "v" for verbose
 
 A "v" in the command makes the operation verbose.
 Creation and extraction will then list the files archived or extracted.
 
-* spooled
+* "s" for spooled or spooling
 
 An "s" in the command is a special function unique to CMS TAR.
 Files will come from z/VM spool space (thus the "name" is a spool ID).
